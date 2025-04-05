@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+
+{% block title %}Quick List Your Car - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card mt-4 mb-4">
+        <div class="card-header">
+          <h2 class="text-center">Quick List Your Car</h2>
+        </div>
+        <div class="card-body">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <p class="mb-4">Choose a car type and set availability to quickly list your car.</p>
+          
+          <form action="{{ url_for('car.quick_create_car') }}" method="POST">
+            <div class="form-group">
+              <label for="car_type">Car Type</label>
+              <select class="form-control" id="car_type" name="car_type" required>
+                <option value="">Select a car type</option>
+                <option value="economy">Economy Car (2015, $35/day)</option>
+                <option value="luxury">Luxury Car (2020, $90/day)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="location">Pickup Location</label>
+              <input type="text" class="form-control" id="location" name="location" placeholder="e.g. 123 Main St, City, State" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="availability_start">Available From</label>
+              <input type="date" class="form-control" id="availability_start" name="availability_start" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="availability_end">Available Until</label>
+              <input type="date" class="form-control" id="availability_end" name="availability_end" required>
+            </div>
+            
+            <div class="card mt-4 mb-4">
+              <div class="card-header">
+                <h4 class="mb-0">Car Details Preview</h4>
+              </div>
+              <div class="card-body" id="car-preview">
+                <p>Select a car type to see details</p>
+              </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block mt-4">Quick List My Car</button>
+          </form>
+          
+          <hr>
+          
+          <div class="text-center">
+            <a href="{{ url_for('car.create_car') }}" class="btn btn-light">Use Custom Create Instead</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('availability_start');
+    const endDateInput = document.getElementById('availability_end');
+    const carTypeSelect = document.getElementById('car_type');
+    const carPreview = document.getElementById('car-preview');
+    
+    // Set minimum date to today
+    const today = new Date();
+    const todayFormatted = today.toISOString().split('T')[0];
+    startDateInput.min = todayFormatted;
+    
+    // Update end date minimum when start date changes
+    startDateInput.addEventListener('change', function() {
+      endDateInput.min = this.value;
+      
+      // If end date is earlier than start date, update it
+      if (endDateInput.value && endDateInput.value < this.value) {
+        endDateInput.value = this.value;
+      }
+    });
+    
+    // Update car preview when car type changes
+    carTypeSelect.addEventListener('change', function() {
+      const selectedType = this.value;
+      
+      if (selectedType === 'economy') {
+        carPreview.innerHTML = `
+          <h4>Economy Car</h4>
+          <ul>
+            <li><strong>Model:</strong> Economy</li>
+            <li><strong>Year:</strong> 2015</li>
+            <li><strong>Mileage:</strong> 80,000 miles</li>
+            <li><strong>Daily Price:</strong> $35.00</li>
+          </ul>
+          <p class="text-muted mt-3">This is a default template for an economy car. Your actual listing will use these values but can be edited later.</p>
+        `;
+      } else if (selectedType === 'luxury') {
+        carPreview.innerHTML = `
+          <h4>Luxury Car</h4>
+          <ul>
+            <li><strong>Model:</strong> Luxury</li>
+            <li><strong>Year:</strong> 2020</li>
+            <li><strong>Mileage:</strong> 30,000 miles</li>
+            <li><strong>Daily Price:</strong> $90.00</li>
+          </ul>
+          <p class="text-muted mt-3">This is a default template for a luxury car. Your actual listing will use these values but can be edited later.</p>
+        `;
+      } else {
+        carPreview.innerHTML = `<p>Select a car type to see details</p>`;
+      }
+    });
+    
+    // Validate form before submission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+      // Check if car type is selected
+      if (!carTypeSelect.value) {
+        e.preventDefault();
+        alert('Please select a car type.');
+        return false;
+      }
+      
+      // Check if end date is after start date
+      if (startDateInput.value && endDateInput.value) {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (endDate < startDate) {
+          e.preventDefault();
+          alert('Available Until date must be after Available From date.');
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  });
+</script>
+{% endblock %}

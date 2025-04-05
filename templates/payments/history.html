@@ -1,0 +1,124 @@
+{% extends "layout.html" %}
+
+{% block title %}Payment History - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="mt-4 mb-4">Payment History</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Tabs for different payment categories -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link active" href="#payments-made" data-toggle="tab">Payments Made</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#payments-received" data-toggle="tab">Payments Received</a>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Payments Made Tab -->
+    <div class="tab-pane active" id="payments-made">
+      {% if payments_made %}
+        <div class="payment-list">
+          {% for payment in payments_made %}
+            <div class="payment-history-item">
+              <div>
+                <h4>Payment for {{ payment.booking.car.model }}</h4>
+                <p>
+                  <strong>Dates:</strong> 
+                  {{ payment.booking.start_date.strftime('%b %d, %Y') }} to 
+                  {{ payment.booking.end_date.strftime('%b %d, %Y') }}
+                </p>
+                <p><strong>Owner:</strong> {{ payment.booking.car.owner.name }}</p>
+                <p><strong>Date:</strong> {{ payment.created_at.strftime('%b %d, %Y') }}</p>
+              </div>
+              <div>
+                <div class="payment-amount">${{ payment.amount }}</div>
+                <span class="payment-status payment-{{ payment.status }}">{{ payment.status }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center p-5">
+          <h3>No payments made yet</h3>
+          <p>When you make payments for bookings, they will appear here.</p>
+          <a href="{{ url_for('car.list_cars') }}" class="btn btn-primary mt-3">Find Cars to Book</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Payments Received Tab -->
+    <div class="tab-pane" id="payments-received">
+      {% if payments_received %}
+        <div class="payment-list">
+          {% for payment in payments_received %}
+            <div class="payment-history-item">
+              <div>
+                <h4>Payment for {{ payment.booking.car.model }}</h4>
+                <p>
+                  <strong>Dates:</strong> 
+                  {{ payment.booking.start_date.strftime('%b %d, %Y') }} to 
+                  {{ payment.booking.end_date.strftime('%b %d, %Y') }}
+                </p>
+                <p><strong>Renter:</strong> {{ payment.booking.renter.name }}</p>
+                <p><strong>Date:</strong> {{ payment.created_at.strftime('%b %d, %Y') }}</p>
+              </div>
+              <div>
+                <div class="payment-amount">${{ payment.amount }}</div>
+                <span class="payment-status payment-{{ payment.status }}">{{ payment.status }}</span>
+                
+                {% if payment.status == 'completed' %}
+                  <form action="{{ url_for('payment.refund_payment', payment_id=payment.id) }}" method="POST" class="mt-2">
+                    <button type="submit" class="btn btn-warning btn-sm">Process Refund</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center p-5">
+          <h3>No payments received yet</h3>
+          <p>When renters make payments for your cars, they will appear here.</p>
+          <a href="{{ url_for('car.create_car') }}" class="btn btn-primary mt-3">List Your Car</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Simple tab functionality
+    const tabs = document.querySelectorAll('.nav-link');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all tabs and panes
+        tabs.forEach(t => t.classList.remove('active'));
+        tabPanes.forEach(p => p.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding pane
+        this.classList.add('active');
+        const targetId = this.getAttribute('href').substring(1);
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+  });
+</script>
+{% endblock %}

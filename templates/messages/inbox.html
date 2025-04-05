@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block title %}Messages - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="flex justify-between align-center mt-4 mb-4">
+    <h1>Messages</h1>
+    <a href="{{ url_for('message.new_message') }}" class="btn btn-primary">New Message</a>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if conversations %}
+    <div class="inbox-list">
+      {% for convo in conversations %}
+        <div class="inbox-item {% if convo.unread_count > 0 %}inbox-item-unread{% endif %}">
+          <a href="{{ url_for('message.conversation', user_id=convo.user.id) }}">
+            <div class="inbox-item-avatar">
+              {{ convo.user.name[0] }}
+            </div>
+            <div class="inbox-item-content">
+              <div class="inbox-item-name">{{ convo.user.name }}</div>
+              <div class="inbox-item-message">
+                {{ convo.last_message.content }}
+              </div>
+            </div>
+            <div class="inbox-item-meta">
+              <div class="inbox-item-time">{{ convo.last_message.created_at.strftime('%b %d') }}</div>
+              {% if convo.unread_count > 0 %}
+                <div class="inbox-item-badge">{{ convo.unread_count }}</div>
+              {% endif %}
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center p-5">
+      <h3>No messages yet</h3>
+      <p>Your message conversations will appear here.</p>
+      <a href="{{ url_for('message.new_message') }}" class="btn btn-primary mt-3">Start a New Conversation</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

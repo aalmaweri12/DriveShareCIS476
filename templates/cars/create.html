@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+
+{% block title %}List Your Car - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card mt-4 mb-4">
+        <div class="card-header">
+          <h2 class="text-center">List Your Car</h2>
+        </div>
+        <div class="card-body">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <p class="mb-4">Fill out the details below to list your car for rent.</p>
+          
+          <form action="{{ url_for('car.create_car') }}" method="POST">
+            <div class="form-group">
+              <label for="model">Car Model</label>
+              <input type="text" class="form-control" id="model" name="model" placeholder="e.g. Toyota Camry" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="year">Year</label>
+              <input type="number" class="form-control" id="year" name="year" min="1990" max="2025" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="mileage">Mileage</label>
+              <input type="number" class="form-control" id="mileage" name="mileage" min="0" step="1" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="daily_price">Daily Price ($)</label>
+              <input type="number" class="form-control" id="daily_price" name="daily_price" min="10" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="location">Pickup Location</label>
+              <input type="text" class="form-control" id="location" name="location" placeholder="e.g. 123 Main St, City, State" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="availability_start">Available From</label>
+              <input type="date" class="form-control" id="availability_start" name="availability_start" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="availability_end">Available Until</label>
+              <input type="date" class="form-control" id="availability_end" name="availability_end" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block mt-4">List My Car</button>
+          </form>
+          
+          <hr>
+          
+          <div class="text-center">
+            <a href="{{ url_for('car.quick_create_car') }}" class="btn btn-light">Use Quick Create Instead</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('availability_start');
+    const endDateInput = document.getElementById('availability_end');
+    
+    // Set minimum date to today
+    const today = new Date();
+    const todayFormatted = today.toISOString().split('T')[0];
+    startDateInput.min = todayFormatted;
+    
+    // Update end date minimum when start date changes
+    startDateInput.addEventListener('change', function() {
+      endDateInput.min = this.value;
+      
+      // If end date is earlier than start date, update it
+      if (endDateInput.value && endDateInput.value < this.value) {
+        endDateInput.value = this.value;
+      }
+    });
+    
+    // Validate form before submission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+      // Check if end date is after start date
+      if (startDateInput.value && endDateInput.value) {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (endDate < startDate) {
+          e.preventDefault();
+          alert('Available Until date must be after Available From date.');
+          return false;
+        }
+      }
+      
+      // Validate mileage is a number
+      const mileage = document.getElementById('mileage').value;
+      if (isNaN(mileage) || mileage < 0) {
+        e.preventDefault();
+        alert('Please enter a valid mileage value.');
+        return false;
+      }
+      
+      // Validate price is a number
+      const price = document.getElementById('daily_price').value;
+      if (isNaN(price) || price < 10) {
+        e.preventDefault();
+        alert('Daily price must be at least $10.');
+        return false;
+      }
+      
+      return true;
+    });
+  });
+</script>
+{% endblock %}

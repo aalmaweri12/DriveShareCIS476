@@ -1,0 +1,170 @@
+{% extends "layout.html" %}
+
+{% block title %}Register - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card mt-4 mb-4">
+        <div class="card-header">
+          <h2 class="text-center">Create an Account</h2>
+        </div>
+        <div class="card-body">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <form action="{{ url_for('auth.register') }}" method="POST">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+              <small class="form-text text-muted">Password must be at least 8 characters long.</small>
+            </div>
+            
+            <h4 class="mt-4 mb-3">Security Questions</h4>
+            <p class="text-muted mb-3">Please select 3 different security questions and provide answers. These will be used to recover your account if you forget your password.</p>
+            
+            <!-- Security Question 1 -->
+            <div class="form-group">
+              <label for="security_question_1">Security Question 1</label>
+              <select class="form-control" id="security_question_1" name="security_question_1" required>
+                <option value="">Select a question</option>
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What was the name of your elementary school?">What was the name of your elementary school?</option>
+                <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                <option value="In what city were you born?">In what city were you born?</option>
+                <option value="What is the name of your favorite childhood friend?">What is the name of your favorite childhood friend?</option>
+                <option value="What was the make of your first car?">What was the make of your first car?</option>
+                <option value="What was your favorite food as a child?">What was your favorite food as a child?</option>
+                <option value="What is your favorite movie?">What is your favorite movie?</option>
+                <option value="What was the street you grew up on?">What was the street you grew up on?</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="security_answer_1">Answer 1</label>
+              <input type="text" class="form-control" id="security_answer_1" name="security_answer_1" required>
+            </div>
+            
+            <!-- Security Question 2 -->
+            <div class="form-group">
+              <label for="security_question_2">Security Question 2</label>
+              <select class="form-control" id="security_question_2" name="security_question_2" required>
+                <option value="">Select a question</option>
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What was the name of your elementary school?">What was the name of your elementary school?</option>
+                <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                <option value="In what city were you born?">In what city were you born?</option>
+                <option value="What is the name of your favorite childhood friend?">What is the name of your favorite childhood friend?</option>
+                <option value="What was the make of your first car?">What was the make of your first car?</option>
+                <option value="What was your favorite food as a child?">What was your favorite food as a child?</option>
+                <option value="What is your favorite movie?">What is your favorite movie?</option>
+                <option value="What was the street you grew up on?">What was the street you grew up on?</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="security_answer_2">Answer 2</label>
+              <input type="text" class="form-control" id="security_answer_2" name="security_answer_2" required>
+            </div>
+            
+            <!-- Security Question 3 -->
+            <div class="form-group">
+              <label for="security_question_3">Security Question 3</label>
+              <select class="form-control" id="security_question_3" name="security_question_3" required>
+                <option value="">Select a question</option>
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What was the name of your elementary school?">What was the name of your elementary school?</option>
+                <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                <option value="In what city were you born?">In what city were you born?</option>
+                <option value="What is the name of your favorite childhood friend?">What is the name of your favorite childhood friend?</option>
+                <option value="What was the make of your first car?">What was the make of your first car?</option>
+                <option value="What was your favorite food as a child?">What was your favorite food as a child?</option>
+                <option value="What is your favorite movie?">What is your favorite movie?</option>
+                <option value="What was the street you grew up on?">What was the street you grew up on?</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="security_answer_3">Answer 3</label>
+              <input type="text" class="form-control" id="security_answer_3" name="security_answer_3" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block mt-4">Register</button>
+          </form>
+          
+          <hr>
+          
+          <div class="text-center">
+            <p>Already have an account?</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-light">Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- This connects to your script.js file -->
+<script>
+  // Prevent duplicate security questions
+  document.addEventListener('DOMContentLoaded', function() {
+    const question1 = document.getElementById('security_question_1');
+    const question2 = document.getElementById('security_question_2');
+    const question3 = document.getElementById('security_question_3');
+    
+    // Helper function to disable selected options in other dropdowns
+    function updateDropdowns(changedDropdown) {
+      const dropdowns = [question1, question2, question3];
+      
+      // Reset all options first
+      dropdowns.forEach(dropdown => {
+        Array.from(dropdown.options).forEach(option => {
+          option.disabled = false;
+        });
+      });
+      
+      // Disable selected options
+      dropdowns.forEach(dropdown => {
+        const selectedValue = dropdown.value;
+        if (selectedValue) {
+          dropdowns.forEach(otherDropdown => {
+            if (otherDropdown !== dropdown) {
+              Array.from(otherDropdown.options).forEach(option => {
+                if (option.value === selectedValue) {
+                  option.disabled = true;
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+    
+    // Add event listeners
+    question1.addEventListener('change', () => updateDropdowns(question1));
+    question2.addEventListener('change', () => updateDropdowns(question2));
+    question3.addEventListener('change', () => updateDropdowns(question3));
+  });
+</script>
+{% endblock %}

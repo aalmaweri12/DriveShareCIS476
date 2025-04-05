@@ -1,0 +1,208 @@
+{% extends "layout.html" %}
+
+{% block title %}Make Payment - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card mt-4 mb-4">
+        <div class="card-header">
+          <h2 class="text-center">Payment</h2>
+        </div>
+        <div class="card-body">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <!-- Booking Details -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3>Booking Details</h3>
+              <div class="payment-info-row">
+                <div class="payment-info-label">Car:</div>
+                <div>{{ booking.car.model }} ({{ booking.car.year }})</div>
+              </div>
+              <div class="payment-info-row">
+                <div class="payment-info-label">Owner:</div>
+                <div>{{ booking.car.owner.name }}</div>
+              </div>
+              <div class="payment-info-row">
+                <div class="payment-info-label">Dates:</div>
+                <div>{{ booking.start_date.strftime('%b %d, %Y') }} to {{ booking.end_date.strftime('%b %d, %Y') }}</div>
+              </div>
+              <div class="payment-info-row">
+                <div class="payment-info-label">Daily Rate:</div>
+                <div>${{ booking.car.daily_price }} per day</div>
+              </div>
+              
+              {% set days = (booking.end_date - booking.start_date).days + 1 %}
+              <div class="payment-info-row">
+                <div class="payment-info-label">Number of Days:</div>
+                <div>{{ days }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Payment Amount -->
+          <div class="payment-card">
+            <div class="payment-amount text-center">
+              ${{ amount }}
+            </div>
+            <p class="text-center text-muted">Total Payment Amount</p>
+          </div>
+          
+          <!-- Payment Method -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h3>Payment Method</h3>
+              <p class="text-muted mb-3">This is a simulation. No actual payment will be processed.</p>
+              
+              <form action="{{ url_for('payment.make_payment', booking_id=booking.id) }}" method="POST">
+                <!-- Saved Cards Section -->
+                {% if current_user.payment_methods %}
+                <div class="form-group">
+                  <label><input type="radio" name="payment_type" value="saved" checked> Use a saved card</label>
+                  
+                  <div id="saved-cards" class="ml-4 mt-2">
+                    {% for card in current_user.payment_methods %}
+                      <div class="form-check mb-2">
+                        <input type="radio" class="form-check-input" name="card_id" value="{{ card.id }}" id="card-{{ card.id }}" {% if card.is_default %}checked{% endif %}>
+                        <label class="form-check-label" for="card-{{ card.id }}">
+                          {{ card.card_type }} ending in {{ card.last_four }} (Expires: {{ card.expiry_month }}/{{ card.expiry_year }})
+                          {% if card.is_default %}<span class="badge badge-info">Default</span>{% endif %}
+                        </label>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <label><input type="radio" name="payment_type" value="new"> Use a new card</label>
+                </div>
+                {% else %}
+                  <input type="hidden" name="payment_type" value="new">
+                {% endif %}
+                
+                <!-- New Card Form -->
+                <div id="new-card-form" class="{% if current_user.payment_methods %}d-none{% endif %}">
+                  <div class="form-group">
+                    <label for="card_holder_name">Cardholder Name</label>
+                    <input type="text" class="form-control" id="card_holder_name" name="card_holder_name" required>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="card_number">Card Number</label>
+                    <input type="text" class="form-control" id="card_number" name="card_number" placeholder="XXXX XXXX XXXX XXXX" required>
+                  </div>
+                  
+                  <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label for="expiry_date">Expiry Date</label>
+                      <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label for="cvv">CVV</label>
+                      <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123" required>
+                    </div>
+                  </div>
+                  
+                  <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="save_card" name="save_card" checked>
+                    <label class="form-check-label" for="save_card">Save this card for future bookings</label>
+                  </div>
+                  
+                  <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="make_default" name="make_default">
+                    <label class="form-check-label" for="make_default">Make this my default payment method</label>
+                  </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block mt-4" id="payment-button">
+                  Pay ${{ amount }}
+                </button>
+              </form>
+            </div>
+          </div>
+          
+          <div class="text-center">
+            <a href="{{ url_for('booking.view_booking', booking_id=booking.id) }}" class="btn btn-light">Back to Booking</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const paymentTypeRadios = document.querySelectorAll('input[name="payment_type"]');
+    const newCardForm = document.getElementById('new-card-form');
+    const savedCards = document.getElementById('saved-cards');
+    
+    // Toggle between saved cards and new card form
+    if (paymentTypeRadios.length > 0) {
+      paymentTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.value === 'new') {
+            newCardForm.classList.remove('d-none');
+            if (savedCards) savedCards.classList.add('d-none');
+          } else {
+            newCardForm.classList.add('d-none');
+            if (savedCards) savedCards.classList.remove('d-none');
+          }
+        });
+      });
+    }
+    
+    // Simple card number formatting
+    const cardNumberInput = document.getElementById('card_number');
+    if (cardNumberInput) {
+      cardNumberInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 16) value = value.substr(0, 16);
+        
+        // Add spaces every 4 digits
+        let formattedValue = '';
+        for (let i = 0; i < value.length; i++) {
+          if (i > 0 && i % 4 === 0) formattedValue += ' ';
+          formattedValue += value[i];
+        }
+        
+        this.value = formattedValue;
+      });
+    }
+    
+    // Expiry date formatting (MM/YY)
+    const expiryInput = document.getElementById('expiry_date');
+    if (expiryInput) {
+      expiryInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 4) value = value.substr(0, 4);
+        
+        if (value.length > 2) {
+          this.value = value.substr(0, 2) + '/' + value.substr(2);
+        } else {
+          this.value = value;
+        }
+      });
+    }
+    
+    // CVV validation
+    const cvvInput = document.getElementById('cvv');
+    if (cvvInput) {
+      cvvInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 4) value = value.substr(0, 4);
+        this.value = value;
+      });
+    }
+  });
+</script>
+{% endblock %}

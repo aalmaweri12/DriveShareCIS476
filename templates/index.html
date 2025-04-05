@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+
+{% block title %}DriveShare - Peer-to-Peer Car Rental{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1>Rent Cars from People in Your Community</h1>
+      <p class="hero-text">Find the perfect car for your trip or earn money by sharing your car when you're not using it.</p>
+      
+      <!-- Search Form -->
+      <div class="search-form">
+        <form action="{{ url_for('car.list_cars') }}" method="GET">
+          <div class="form-row">
+            <div class="form-col">
+              <label for="location">Where</label>
+              <input type="text" class="form-control" id="location" name="location" placeholder="City, State">
+            </div>
+            <div class="form-col">
+              <label for="start_date">From</label>
+              <input type="date" class="form-control" id="start_date" name="start_date">
+            </div>
+            <div class="form-col">
+              <label for="end_date">Until</label>
+              <input type="date" class="form-control" id="end_date" name="end_date">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block mt-3">Find Cars</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How It Works -->
+<div class="container mt-5">
+  <h2 class="text-center mb-4">How DriveShare Works</h2>
+  
+  <div class="how-it-works">
+    <div class="step">
+      <div class="step-icon">1</div>
+      <div class="step-content">
+        <h3>Find the Perfect Car</h3>
+        <p>Search for cars by location and dates. Choose from a variety of cars shared by local owners.</p>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-icon">2</div>
+      <div class="step-content">
+        <h3>Book Your Trip</h3>
+        <p>Book your car directly through our platform. Owners will confirm your booking request.</p>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-icon">3</div>
+      <div class="step-content">
+        <h3>Enjoy the Ride</h3>
+        <p>Pick up the car from the owner, enjoy your trip, and return the car at the end of your booking.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Benefits -->
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">For Renters</h3>
+          <ul class="benefit-list">
+            <li>Find cars in your neighborhood</li>
+            <li>Choose from a variety of vehicle types</li>
+            <li>Affordable rates with no hidden fees</li>
+            <li>Simple booking process</li>
+            <li>Direct communication with car owners</li>
+          </ul>
+          <a href="{{ url_for('car.list_cars') }}" class="btn btn-primary mt-3">Find a Car</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title">For Car Owners</h3>
+          <ul class="benefit-list">
+            <li>Earn money when you're not using your car</li>
+            <li>Set your own availability and pricing</li>
+            <li>Meet verified local renters</li>
+            <li>Manage bookings through a simple dashboard</li>
+            <li>Receive secure payments</li>
+          </ul>
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('car.create_car') }}" class="btn btn-primary mt-3">List Your Car</a>
+          {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary mt-3">Get Started</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ready to Start -->
+<div class="cta-section mt-5">
+  <div class="container">
+    <h2 class="text-center">Ready to Get Started?</h2>
+    <p class="text-center">Join our growing community of car owners and renters today.</p>
+    <div class="text-center mt-4">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('car.list_cars') }}" class="btn btn-primary mr-3">Find a Car</a>
+        <a href="{{ url_for('car.create_car') }}" class="btn btn-secondary">List Your Car</a>
+      {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary mr-3">Sign Up</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Login</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    // Set minimum date to today
+    const today = new Date();
+    const todayFormatted = today.toISOString().split('T')[0];
+    startDateInput.min = todayFormatted;
+    
+    // Update end date minimum when start date changes
+    startDateInput.addEventListener('change', function() {
+      endDateInput.min = this.value;
+      
+      // If end date is earlier than start date, update it
+      if (endDateInput.value && endDateInput.value < this.value) {
+        endDateInput.value = this.value;
+      }
+    });
+  });
+</script>
+{% endblock %}

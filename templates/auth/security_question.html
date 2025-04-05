@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block title %}Security Question - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 mx-auto">
+      <div class="card mt-5">
+        <div class="card-header">
+          <h2 class="text-center">Verify Your Identity</h2>
+        </div>
+        <div class="card-body">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <p class="mb-4">Please answer your security question ({{ question_number }} of 3):</p>
+          
+          <div class="alert alert-info">
+            <strong>Question:</strong> {{ question }}
+          </div>
+          
+          <form action="{{ url_for('auth.security_question', question_number=question_number) }}" method="POST">
+            <div class="form-group">
+              <label for="answer">Your Answer</label>
+              <input type="text" class="form-control" id="answer" name="answer" required autofocus>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">Submit Answer</button>
+          </form>
+          
+          <hr>
+          
+          <div class="text-center">
+            <a href="{{ url_for('auth.forgot_password') }}">Restart Recovery Process</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

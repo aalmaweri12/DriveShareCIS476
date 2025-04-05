@@ -1,0 +1,110 @@
+/* 
+ * DriveShare Home Page Specific CSS
+ * Additional styles for the home page only
+ */
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://via.placeholder.com/1600x800');
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    padding: 80px 0;
+    margin-top: -1rem; /* To offset the navbar margin */
+  }
+  
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .hero-text {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Override search form styling for the hero section */
+  .hero .search-form {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    color: var(--dark-color);
+  }
+  
+  /* How It Works Section */
+  .how-it-works {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin: 2rem 0;
+  }
+  
+  .step {
+    flex: 1;
+    min-width: 250px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .step-icon {
+    background-color: var(--primary-color);
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+  }
+  
+  .step-content h3 {
+    margin-bottom: 1rem;
+  }
+  
+  /* Benefits Section */
+  .benefit-list {
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .benefit-list li {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* CTA Section */
+  .cta-section {
+    background-color: #f8f9fa;
+    padding: 60px 0;
+    margin-bottom: -2rem; /* To offset the footer margin */
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 60px 0;
+    }
+    
+    .hero h1 {
+      font-size: 2rem;
+    }
+    
+    .how-it-works {
+      flex-direction: column;
+    }
+    
+    .step {
+      flex: none;
+      width: 100%;
+    }
+  }

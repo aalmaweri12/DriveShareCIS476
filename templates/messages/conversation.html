@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block title %}Conversation with {{ other_user.name }} - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card mt-4 mb-4">
+        <div class="card-header">
+          <div class="flex justify-between align-center">
+            <h2 class="mb-0">Conversation with {{ other_user.name }}</h2>
+            <a href="{{ url_for('message.inbox') }}" class="btn btn-light btn-sm">Back to Inbox</a>
+          </div>
+          
+          {% if booking %}
+            <div class="mt-2">
+              <span class="badge badge-info">Related to Booking #{{ booking.id }}</span>
+              <a href="{{ url_for('booking.view_booking', booking_id=booking.id) }}" class="ml-2">View Booking</a>
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="card-body">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <!-- Messages -->
+          <div class="message-list">
+            {% if messages %}
+              {% for message in messages %}
+                <div class="message-item {% if message.sender_id == current_user.id %}message-item-sent{% endif %}">
+                  <div class="message-bubble {% if message.sender_id == current_user.id %}message-bubble-sent{% else %}message-bubble-received{% endif %}">
+                    <div class="message-sender">
+                      <strong>{{ message.sender.name }}</strong>
+                    </div>
+                    <div class="message-content">
+                      {{ message.content }}
+                    </div>
+                    <div class="message-time">
+                      {{ message.created_at.strftime('%b %d, %Y %I:%M %p') }}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center text-muted p-5">
+                <p>No messages yet. Start the conversation!</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Message Form -->
+        <div class="card-footer">
+          <form action="{{ url_for('message.conversation', user_id=other_user.id) }}{% if booking %}?booking_id={{ booking.id }}{% endif %}" method="POST" class="message-form">
+            <input type="text" class="message-input" name="content" placeholder="Type a message..." required>
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Scroll to bottom of message list
+    const messageList = document.querySelector('.message-list');
+    if (messageList) {
+      messageList.scrollTop = messageList.scrollHeight;
+    }
+    
+    // Auto-focus the message input
+    const messageInput = document.querySelector('.message-input');
+    if (messageInput) {
+      messageInput.focus();
+    }
+  });
+</script>
+{% endblock %}

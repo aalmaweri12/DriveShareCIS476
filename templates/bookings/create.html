@@ -1,0 +1,197 @@
+{% extends "layout.html" %}
+
+{% block title %}Book a Car - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="card mt-4 mb-4">
+        <div class="card-header">
+          <h2 class="text-center">Book This Car</h2>
+        </div>
+        <div class="card-body">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+          
+          <!-- Car Details -->
+          <div class="mb-4">
+            <div class="card">
+              <div class="card-body">
+                <div class="flex">
+                  <div>
+                    <h3>{{ car.model }} ({{ car.year }})</h3>
+                    <p><strong>Owner:</strong> {{ car.owner.name }}</p>
+                    <p><strong>Location:</strong> {{ car.location }}</p>
+                    <p><strong>Mileage:</strong> {{ car.mileage }} miles</p>
+                    <p class="car-price">${{ car.daily_price }} per day</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Booking Form -->
+          <form action="{{ url_for('booking.create_booking', car_id=car.id) }}" method="POST" id="booking-form">
+            <input type="hidden" name="car_id" value="{{ car.id }}">
+            
+            <div class="form-group">
+              <label for="start_date">Start Date</label>
+              <input type="date" class="form-control" id="start_date" name="start_date" 
+                     min="{{ car.availability_start.strftime('%Y-%m-%d') }}" 
+                     max="{{ car.availability_end.strftime('%Y-%m-%d') }}" 
+                     required>
+              <small class="form-text text-muted">
+                Available from {{ car.availability_start.strftime('%b %d, %Y') }} to {{ car.availability_end.strftime('%b %d, %Y') }}
+              </small>
+            </div>
+            
+            <div class="form-group">
+              <label for="end_date">End Date</label>
+              <input type="date" class="form-control" id="end_date" name="end_date" 
+                     min="{{ car.availability_start.strftime('%Y-%m-%d') }}" 
+                     max="{{ car.availability_end.strftime('%Y-%m-%d') }}" 
+                     required>
+            </div>
+            
+            <!-- Price Calculation -->
+            <div class="card mt-4 mb-4 p-3" id="price-summary" style="display: none;">
+              <h4>Price Summary</h4>
+              <div class="flex justify-between mb-2">
+                <span>Daily Rate:</span>
+                <span>${{ car.daily_price }} per day</span>
+              </div>
+              <div class="flex justify-between mb-2">
+                <span>Number of Days:</span>
+                <span id="num-days">0</span>
+              </div>
+              <hr>
+              <div class="flex justify-between">
+                <strong>Total Price:</strong>
+                <strong id="total-price">$0.00</strong>
+              </div>
+            </div>
+            
+            <div id="availability-result"></div>
+            
+            <button type="submit" class="btn btn-primary btn-block mt-4">Request Booking</button>
+          </form>
+          
+          <hr>
+          
+          <div class="text-center">
+            <a href="{{ url_for('car.view_car', car_id=car.id) }}" class="btn btn-light">Back to Car Details</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const priceSummary = document.getElementById('price-summary');
+    const numDaysElement = document.getElementById('num-days');
+    const totalPriceElement = document.getElementById('total-price');
+    const availabilityResult = document.getElementById('availability-result');
+    const form = document.getElementById('booking-form');
+    
+    const dailyPrice = {{ car.daily_price }};
+    
+    // Calculate days and price when dates change
+    function updatePriceSummary() {
+      if (startDateInput.value && endDateInput.value) {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        // Calculate difference in days
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include end date
+        
+        if (diffDays > 0) {
+          // Update the UI
+          numDaysElement.textContent = diffDays;
+          totalPriceElement.textContent = '$' + (diffDays * dailyPrice).toFixed(2);
+          priceSummary.style.display = 'block';
+          
+          // Check availability using the API
+          checkAvailability();
+        } else {
+          priceSummary.style.display = 'none';
+          availabilityResult.innerHTML = '';
+        }
+      } else {
+        priceSummary.style.display = 'none';
+        availabilityResult.innerHTML = '';
+      }
+    }
+    
+    // Check car availability using API
+    function checkAvailability() {
+      if (startDateInput.value && endDateInput.value) {
+        const carId = {{ car.id }};
+        
+        fetch(`/bookings/api/check-availability?car_id=${carId}&start_date=${startDate}&end_date=${endDate}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.available) {
+              availabilityResult.innerHTML = '<div class="alert alert-success mt-3">This car is available for the selected dates!</div>';
+            } else {
+              availabilityResult.innerHTML = '<div class="alert alert-danger mt-3">Sorry, this car is not available for the selected dates.</div>';
+            }
+          })
+          .catch(error => {
+            availabilityResult.innerHTML = '<div class="alert alert-danger mt-3">Error checking availability. Please try again.</div>';
+            console.error('Error:', error);
+          });
+      }
+    }
+    
+    // Set minimum end date when start date changes
+    startDateInput.addEventListener('change', function() {
+      endDateInput.min = this.value;
+      
+      // If end date is earlier than start date, update it
+      if (endDateInput.value && new Date(endDateInput.value) < new Date(this.value)) {
+        endDateInput.value = this.value;
+      }
+      
+      updatePriceSummary();
+    });
+    
+    // Update price when end date changes
+    endDateInput.addEventListener('change', function() {
+      updatePriceSummary();
+    });
+    
+    // Validate form before submission
+    form.addEventListener('submit', function(e) {
+      if (!startDateInput.value || !endDateInput.value) {
+        e.preventDefault();
+        alert('Please select both start and end dates.');
+        return false;
+      }
+      
+      const startDate = new Date(startDateInput.value);
+      const endDate = new Date(endDateInput.value);
+      
+      if (endDate < startDate) {
+        e.preventDefault();
+        alert('End date cannot be before start date.');
+        return false;
+      }
+      
+      return true;
+    });
+  });
+</script>
+{% endblock %}

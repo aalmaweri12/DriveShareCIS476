@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+
+{% block title %}My Bookings - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="mt-4 mb-4">My Bookings</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Tabs for different booking categories -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link active" href="#my-rentals" data-toggle="tab">Cars I've Rented</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#my-cars-booked" data-toggle="tab">My Cars That Are Booked</a>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Cars I've Rented Tab -->
+    <div class="tab-pane active" id="my-rentals">
+      {% if my_bookings %}
+        <div class="booking-list">
+          {% for booking in my_bookings %}
+            <div class="booking-item">
+              <div class="booking-info">
+                <div class="mb-2">
+                  <span class="booking-status status-{{ booking.status }}">{{ booking.status }}</span>
+                </div>
+                <h3>{{ booking.car.model }} ({{ booking.car.year }})</h3>
+                <p><strong>Owner:</strong> {{ booking.car.owner.name }}</p>
+                <p><strong>Dates:</strong> {{ booking.start_date.strftime('%b %d, %Y') }} to {{ booking.end_date.strftime('%b %d, %Y') }}</p>
+                <p><strong>Location:</strong> {{ booking.car.location }}</p>
+                <p><strong>Daily Rate:</strong> ${{ booking.car.daily_price }}</p>
+              </div>
+              <div class="booking-actions">
+                <a href="{{ url_for('booking.view_booking', booking_id=booking.id) }}" class="btn btn-primary mb-2">View Details</a>
+                
+                {% if booking.status == 'pending' %}
+                  <form action="{{ url_for('booking.update_booking_status', booking_id=booking.id) }}" method="POST">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger mb-2">Cancel Booking</button>
+                  </form>
+                {% elif booking.status == 'confirmed' %}
+                  <form action="{{ url_for('booking.update_booking_status', booking_id=booking.id) }}" method="POST">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger mb-2">Cancel Booking</button>
+                  </form>
+                  {% if not booking.payment %}
+                    <a href="{{ url_for('payment.make_payment', booking_id=booking.id) }}" class="btn btn-secondary mb-2">Make Payment</a>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center p-5">
+          <h3>You haven't booked any cars yet</h3>
+          <p>Find a car to rent and make your first booking!</p>
+          <a href="{{ url_for('car.list_cars') }}" class="btn btn-primary mt-3">Find Cars</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- My Cars That Are Booked Tab -->
+    <div class="tab-pane" id="my-cars-booked">
+      {% if received_bookings %}
+        <div class="booking-list">
+          {% for booking in received_bookings %}
+            <div class="booking-item">
+              <div class="booking-info">
+                <div class="mb-2">
+                  <span class="booking-status status-{{ booking.status }}">{{ booking.status }}</span>
+                </div>
+                <h3>{{ booking.car.model }} ({{ booking.car.year }})</h3>
+                <p><strong>Renter:</strong> {{ booking.renter.name }}</p>
+                <p><strong>Dates:</strong> {{ booking.start_date.strftime('%b %d, %Y') }} to {{ booking.end_date.strftime('%b %d, %Y') }}</p>
+                <p><strong>Daily Rate:</strong> ${{ booking.car.daily_price }}</p>
+              </div>
+              <div class="booking-actions">
+                <a href="{{ url_for('booking.view_booking', booking_id=booking.id) }}" class="btn btn-primary mb-2">View Details</a>
+                
+                {% if booking.status == 'pending' %}
+                  <form action="{{ url_for('booking.update_booking_status', booking_id=booking.id) }}" method="POST">
+                    <input type="hidden" name="status" value="confirmed">
+                    <button type="submit" class="btn btn-success mb-2">Accept Booking</button>
+                  </form>
+                  <form action="{{ url_for('booking.update_booking_status', booking_id=booking.id) }}" method="POST">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger mb-2">Decline Booking</button>
+                  </form>
+                {% elif booking.status == 'confirmed' %}
+                  <form action="{{ url_for('booking.update_booking_status', booking_id=booking.id) }}" method="POST">
+                    <input type="hidden" name="status" value="completed">
+                    <button type="submit" class="btn btn-success mb-2">Mark as Completed</button>
+                  </form>
+                  <form action="{{ url_for('booking.update_booking_status', booking_id=booking.id) }}" method="POST">
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger mb-2">Cancel Booking</button>
+                  </form>
+                {% endif %}
+                
+                {% if booking.payment and booking.payment.status == 'completed' %}
+                  <form action="{{ url_for('payment.refund_payment', payment_id=booking.payment.id) }}" method="POST">
+                    <button type="submit" class="btn btn-warning mb-2">Process Refund</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center p-5">
+          <h3>Your cars haven't been booked yet</h3>
+          <p>List more cars or update your existing listings to attract renters!</p>
+          <a href="{{ url_for('car.create_car') }}" class="btn btn-primary mt-3">List a Car</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Simple tab functionality
+    const tabs = document.querySelectorAll('.nav-link');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all tabs and panes
+        tabs.forEach(t => t.classList.remove('active'));
+        tabPanes.forEach(p => p.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding pane
+        this.classList.add('active');
+        const targetId = this.getAttribute('href').substring(1);
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+  });
+</script>
+{% endblock %}

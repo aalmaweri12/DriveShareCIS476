@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DriveShare{% endblock %}</title>
+  
+  <!-- Link to your CSS files -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% if request.endpoint == 'main.index' %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+  {% endif %}
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="{{ url_for('main.index') }}" class="logo">DriveShare</a>
+      <ul class="nav-links">
+        <li><a href="{{ url_for('car.list_cars') }}">Find Cars</a></li>
+        
+        {% if current_user.is_authenticated %}
+          <li><a href="{{ url_for('booking.list_bookings') }}">My Bookings</a></li>
+          <li><a href="{{ url_for('car.my_cars') }}">My Cars</a></li>
+          <li><a href="{{ url_for('message.inbox') }}">Messages</a></li>
+          <li class="user-menu">
+            <div class="user-menu-toggle">
+              {{ current_user.name }} ▼
+            </div>
+            <div class="user-menu-dropdown">
+              <ul>
+                <li><a href="{{ url_for('car.create_car') }}">List a Car</a></li>
+                <li><a href="{{ url_for('payment.payment_methods') }}">Payment Methods</a></li>
+                <li><a href="{{ url_for('payment.payment_history') }}">Payment History</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+              </ul>
+            </div>
+          </li>
+        {% else %}
+          <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+          <li><a href="{{ url_for('auth.register') }}" class="btn btn-primary">Register</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>DriveShare</h3>
+          <p>Rent cars from people in your community.</p>
+        </div>
+        <div class="footer-section">
+          <h3>Quick Links</h3>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li><a href="{{ url_for('car.list_cars') }}">Find Cars</a></li>
+            <li><a href="{{ url_for('car.create_car') }}">List Your Car</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h3>Help</h3>
+          <ul class="footer-links">
+            <li><a href="#">How It Works</a></li>
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Contact Us</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 DriveShare. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Link to your JS file -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  
+  <!-- Block for additional scripts -->
+  {% block scripts %}{% endblock %}
+</body>
+</html>

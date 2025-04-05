@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block title %}Find Cars - DriveShare{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="mt-4 mb-4">Find Cars to Rent</h1>
+
+  <!-- Search Form -->
+  <div class="search-form">
+    <form action="{{ url_for('car.list_cars') }}" method="GET">
+      <div class="form-row">
+        <div class="form-col">
+          <label for="location">Location</label>
+          <input type="text" class="form-control" id="location" name="location" placeholder="City, State" value="{{ location }}">
+        </div>
+        <div class="form-col">
+          <label for="start_date">Start Date</label>
+          <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+        </div>
+        <div class="form-col">
+          <label for="end_date">End Date</label>
+          <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Search Cars</button>
+    </form>
+  </div>
+
+  <!-- Results -->
+  {% if cars %}
+    <div class="car-list">
+      {% for car in cars %}
+        <div class="card car-card">
+          <div class="card-body">
+            <h3 class="card-title">{{ car.model }}</h3>
+            <div class="car-info">
+              <p><strong>Year:</strong> {{ car.year }}</p>
+              <p><strong>Mileage:</strong> {{ car.mileage }} miles</p>
+              <p><strong>Location:</strong> {{ car.location }}</p>
+              <p><strong>Available:</strong> {{ car.availability_start.strftime('%b %d, %Y') }} to {{ car.availability_end.strftime('%b %d, %Y') }}</p>
+            </div>
+            <div class="car-price">${{ car.daily_price }} per day</div>
+            <a href="{{ url_for('car.view_car', car_id=car.id) }}" class="btn btn-primary">View Details</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center p-5">
+      <h3>No cars available for the selected criteria</h3>
+      <p>Try adjusting your search parameters or check back later.</p>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('car.create_car') }}" class="btn btn-primary mt-3">List Your Car</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    // Set minimum date to today
+    const today = new Date();
+    const todayFormatted = today.toISOString().split('T')[0];
+    
+    if (!startDateInput.value) {
+      startDateInput.min = todayFormatted;
+    }
+    
+    // Update end date minimum when start date changes
+    startDateInput.addEventListener('change', function() {
+      endDateInput.min = this.value;
+      
+      // If end date is earlier than start date, update it
+      if (endDateInput.value && endDateInput.value < this.value) {
+        endDateInput.value = this.value;
+      }
+    });
+  });
+</script>
+{% endblock %}
