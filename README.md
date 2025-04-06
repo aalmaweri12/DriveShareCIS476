@@ -132,8 +132,8 @@ driveshare/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/driveshare.git
-   cd driveshare
+   git clone https://github.com/aalmaweri12/DriveShareCIS476.git
+   cd DriveShareCIS476
    ```
 
 2. Create and activate a virtual environment:
